@@ -1,5 +1,5 @@
 {
-  "name": "securitas-direct",
+  "name": "@ottimis/securitas-direct",
   "version": "1.2.0",
   "description": "A module for reading and changing status of Securitas Direct devices.",
   "main": "index.js",

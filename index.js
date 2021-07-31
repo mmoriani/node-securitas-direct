@@ -81,7 +81,7 @@ class SecuritasDirect {
     }).then(({ INSTALLATION }) => INSTALLATION[0]);
   }
 
-  async transaction(action, installation, panel, retries = 0) {
+  async transaction(action, installation, panel, retries = 0, interval = 5) {
     if (retries > 10) {
       return Promise.reject(new Error('Too many retries'));
     }
@@ -117,7 +117,7 @@ class SecuritasDirect {
       return response;
     }
 
-    await sleep(1);
+    await sleep(interval);
 
     return this.transaction(action, installation, panel, retries + 1);
   }
