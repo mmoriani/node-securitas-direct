@@ -1,6 +1,6 @@
 {
   "name": "@ottimis/securitas-direct",
-  "version": "1.2.0",
+  "version": "2.0.1",
   "description": "A module for reading and changing status of Securitas Direct devices.",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,8 @@
     "securitas direct"
   ],
   "author": [
-    "Erik Eng"
+    "Erik Eng",
+    "MM"
   ],
   "license": "MIT",
   "bugs": {
