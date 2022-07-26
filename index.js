@@ -2,6 +2,7 @@ const axios = require('axios');
 
 const QUERY = {
   LoginToken: "mutation LoginToken($user: String!, $password: String!, $id: String!, $country: String!, $lang: String!, $callby: String!) {\n  xSLoginToken(user: $user, password: $password, id: $id, country: $country, lang: $lang, callby: $callby) {\n    res\n    msg\n    hash\n    lang\n    legals\n    mainUser\n    changePassword\n  }\n}\n",
+  mkLoginToken: "mutation mkLoginToken($user: String!, $password: String!, $id: String!, $country: String!, $lang: String!, $callby: String!) {  xSLoginToken(user: $user, password: $password, id: $id, country: $country, lang: $lang, callby: $callby) {    res    msg    hash    lang    legals    mainUser    changePassword    needDeviceAuthorization  }}",
   InstallationList: "query InstallationList {\n  xSInstallations {\n    installations {\n      numinst\n      alias\n      panel\n      type\n      name\n      surname\n      address\n      city\n      postcode\n      province\n      email\n      phone\n    }\n  }\n}\n",
   CheckAlarm: "query CheckAlarm($numinst: String!, $panel: String!) {\n  xSCheckAlarm(numinst: $numinst, panel: $panel) {\n    res\n    msg\n    referenceId\n  }\n}\n",
   CheckAlarmStatus: "query CheckAlarmStatus($numinst: String!, $idService: String!, $panel: String!, $referenceId: String!) {\n  xSCheckAlarmStatus(numinst: $numinst, idService: $idService, panel: $panel, referenceId: $referenceId) {\n    res\n    msg\n    status\n    numinst\n    protomResponse\n    protomResponseDate\n  }\n}\n",
@@ -19,15 +20,16 @@ const STATUS = {
 
 const client = axios.create({
   baseURL: 'https://customers.verisure.it/owa-api/graphql',
+  withCredentials: true,
 });
 
 client.interceptors.response.use(async (response) => {
-  const data = response.data.data;
+  const data = response.data;
   const keys = Object.keys(data);
   const res = data[keys[0]];
 
-  if (!res) {
-    const err = response.data.errors[0];
+  if (data.errors) {
+    const err = data.errors[0];
     const error = new Error('Unknown response');
     error.response = {
       ...response,
@@ -55,6 +57,7 @@ class SecuritasDirect {
   auth = {
     "user": "",
     "id": "",
+
     "country": "",
     "lang": "",
     "callby": "OWP_10",
@@ -63,11 +66,13 @@ class SecuritasDirect {
   installation = ""; // Installation ID
   password = "";
 
-  constructor(username, password, country) {
+  constructor(username, password, country, hash, installation) {
     this.auth.user = username;
     this.auth.id = buildId(username);
     this.auth.country = country.toUpperCase();
     this.auth.lang = country;
+    this.auth.hash = hash;
+    this.installation = installation;
     this.password = password;
   }
 
@@ -75,10 +80,10 @@ class SecuritasDirect {
     return client({
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       data: {
-        operationName: "LoginToken",
+        operationName: "mkLoginToken",
         variables: {
           country: this.auth.country,
           id: this.auth.id,
@@ -87,7 +92,7 @@ class SecuritasDirect {
           user: this.auth.user,
           callby: this.auth.callby,
         },
-        query: QUERY.LoginToken
+        query: QUERY.mkLoginToken
       }
     }).then((res) => {
       this.auth.hash = res.hash;
@@ -120,11 +125,14 @@ class SecuritasDirect {
   }
 
   async checkAlarm(panel) {
+    // if (!this.auth.hash) {
+    //   await this.login();
+    // }
     const request = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'auth': JSON.stringify(this.auth)
+        'auth': JSON.stringify(this.auth),
       },
       data: {
         operationName: "CheckAlarm",
@@ -138,6 +146,7 @@ class SecuritasDirect {
 
     const response = await client(request)
       .catch(async (error) => {
+        console.log('Error -> ', error);
         // Invalid session. Please, try again later.
         if (error.code === '60022') {
           this.auth.hash = await this.login().catch((error) => { console.log(error) });
