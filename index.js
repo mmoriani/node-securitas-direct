@@ -58,9 +58,9 @@ class SecuritasDirect {
     "country": "",
     "lang": "",
     "callby": "OWP_10",
-    "hash": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMzkyMDQyNzk1IiwiY250IjoiSVQiLCJjYnkiOiJPV1BfMTAiLCJqdGkiOiIxMmI2NjljZS1jZDAxLTRmMWQtODQ3Yy1jZTYzZTM2N2JhOTQiLCJpYXQiOjE2MzAxODM5NjEsImV4cCI6MTYzMDE4NDg2MX0.2ym5h5x2WWuuhbxZGwL2BZMELJApRZrvLrfneCDxVWY"
+    "hash": "" // Token
   }
-  installation = "2415572";
+  installation = ""; // Installation ID
   password = "";
 
   constructor(username, password, country) {
@@ -90,7 +90,6 @@ class SecuritasDirect {
         query: QUERY.LoginToken
       }
     }).then((res) => {
-      console.log("Login: ", res);
       this.auth.hash = res.hash;
       return this.auth.hash;
     }).catch((err) => {
@@ -115,6 +114,7 @@ class SecuritasDirect {
         query: QUERY.InstallationList
       }
     }).then((res) => {
+      // TODO: Handle multiple installations
       this.installation = res.installations[0].numinst;
     });
   }
